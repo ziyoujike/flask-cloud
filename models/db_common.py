@@ -40,6 +40,8 @@ class DictionariesModel(db.Model):
     type = db.Column(db.String(20))
     code = db.Column(db.String(4))
     icon_url = db.Column(db.String(255))
+    user_id = db.Column(db.String,db.ForEignKey=("user.id"))
+    user = db.relationship("UserModel",backref="db_dictionaries")
     create_time = db.Column(db.DateTime, default=datetime.now)
     update_time = db.Column(db.DateTime, default=datetime.now)
 
