@@ -1,6 +1,6 @@
 from flask import Flask
 import settings
-from extend import mail, db
+from extend import mail, db, swagger
 from flask_migrate import Migrate
 
 from apps import *
@@ -12,6 +12,8 @@ app.config.from_object(settings)
 db.init_app(app)
 # 把app绑定在mial上
 mail.init_app(app)
+# 绑定swagger
+swagger.init_app(app)
 
 app.register_blueprint(common)
 app.register_blueprint(resources)

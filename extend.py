@@ -7,7 +7,10 @@
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail
+from flasgger import Swagger
 
 db = SQLAlchemy()
 
 mail = Mail()
+
+swagger = Swagger()

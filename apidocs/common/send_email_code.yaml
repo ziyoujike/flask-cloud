@@ -1,0 +1,17 @@
+发送邮箱验证码
+---
+tags:
+  - 公共模块
+parameters:
+  - name: email
+    in: query
+    type: string
+    required: true
+    description: 邮箱
+responses:
+  1001:
+    description: 数据已存在！
+  1002:
+    description: 服务器错误！
+  200:
+    description: 插入成功！

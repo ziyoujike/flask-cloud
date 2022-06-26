@@ -4,9 +4,10 @@
 # @Email   : 981742876.com
 # @File    : db_common.py
 # @Desc    : 公共模块
+import os
 from urllib.parse import urlencode
 
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 
 from extend import mail, db
 from flask_mail import Message
@@ -16,14 +17,16 @@ import requests
 from datetime import datetime
 from models.db_common import EmailCodeModel, PhoneCodeModel
 
+from flasgger import swag_from
+
 common = Blueprint('common', __name__, url_prefix='/common')
 
 
 # 发送手机验证码
 @common.route('/send_phone_code', methods=["GET"])
+@swag_from(os.path.abspath('..') + "/cloud/apidocs/common/send_phone_code.yaml")
 def send_phone_code():
     phone = request.args.get('phone')
-    print(phone)
     url = "http://v.juhe.cn/sms/send"
     code = '%06d' % random.randint(0, 999999)
     params = {
@@ -40,19 +43,20 @@ def send_phone_code():
             phone_model.code = code
             phone_model.update_time = datetime.now()
             db.session.commit()
-            return "数据已存在"
+            return jsonify({"message": "数据已存在", "code": 1001})
         else:
             phone_models = PhoneCodeModel(code=code, phone=phone)
             db.session.add(phone_models)
             db.session.commit()
-            return "插入成功"
+            return jsonify({"message": "发送成功", "code": 200})
     else:
-        return "发送失败"
+        return jsonify({"message": "服务器错误", "code": 1002})
 
 
 # 发送邮箱验证码
-@common.route('/send_code', methods=['GET'])
-def send_code():
+@common.route('/send_email_code', methods=['GET'])
+@swag_from(os.path.abspath('..') + "/cloud/apidocs/common/send_email_code.yaml")
+def send_email_code():
     email = request.args.get('email')
     letters = string.ascii_letters + string.digits
     code = "".join(random.sample(letters, 4))
@@ -85,6 +89,7 @@ def login():
 
 
 # 注册
-@common.route('/register')
+@common.route('/register', methods=['POST'])
 def register():
-    pass
+    print(request.form)
+    return jsonify({"message": "OK"})
