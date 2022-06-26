@@ -1,0 +1,27 @@
+修改用户信息
+---
+tags:
+  - 公共模块
+parameters:
+  - name: password
+    in: body
+    type: string
+    required: true
+    description: 手机号
+    schema:
+      #值类型
+      type: object
+      #定义属性
+      properties:
+        password:
+          type: string
+          description: 密码
+
+
+responses:
+  1001:
+    description: 数据已存在！
+  1002:
+    description: 服务器错误！
+  200:
+    description: 插入成功！

@@ -27,7 +27,7 @@ class UserModel(db.Model):
     password = db.Column(db.String(255), nullable=False)
     phone = db.Column(db.String(255), nullable=False, unique=True)
     avatar_url = db.Column(db.String(255))
-    email = db.Column(db.String(255))
+    email = db.Column(db.String(255), unique=False)
     create_time = db.Column(db.DateTime, default=datetime.now)
     update_time = db.Column(db.DateTime, default=datetime.now)
 

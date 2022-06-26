@@ -1,0 +1,8 @@
+退出登录
+---
+tags:
+  - 公共模块
+
+responses:
+  200:
+    description: 操作成功！
