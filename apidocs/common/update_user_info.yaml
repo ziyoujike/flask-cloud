@@ -16,12 +16,19 @@ parameters:
         password:
           type: string
           description: 密码
+        email:
+          type: string
+          description: 邮箱
+        avatar_url:
+          type: string
+          description: 头像
+        user_name:
+          type: string
+          description: 用户名
 
 
 responses:
-  1001:
-    description: 数据已存在！
-  1002:
-    description: 服务器错误！
-  200:
-    description: 插入成功！
+  schema:
+    #值类型
+    type: object
+

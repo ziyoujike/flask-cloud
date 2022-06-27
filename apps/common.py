@@ -15,13 +15,19 @@ from flask_mail import Message
 import string
 import random
 import requests
-
+from qiniu import Auth
 from datetime import datetime
 from models.db_common import EmailCodeModel, PhoneCodeModel, UserModel
 
 from flasgger import swag_from
+from decorators import login_state, is_admin
 
 common = Blueprint('common', __name__, url_prefix='/common')
+
+# 七牛给开发者分配的AccessKey
+QINIU_ACCESS_KEY = 'NwAngZAu-NMd1hnONYBKVLlZIrTl7XvW1003FceC'
+# 七牛给开发者分配的Secret
+QINIU_SECRET_KEY = '0Z80IWpG3UcvHKj9lMedQi83rfV9GKT6WfxvNE1t'
 
 
 # 发送手机验证码
@@ -45,14 +51,15 @@ def send_phone_code():
             phone_model.code = code
             phone_model.update_time = datetime.now()
             db.session.commit()
-            return jsonify({"message": "数据已存在", "code": 1001})
+            return jsonify({"message": "数据已存在", "data": None, 'code': 1001})
         else:
             phone_models = PhoneCodeModel(code=code, phone=phone)
             db.session.add(phone_models)
             db.session.commit()
-            return jsonify({"message": "发送成功", "code": 200})
+            return jsonify({"message": "操作成功", "data": None, 'code': 1001})
+
     else:
-        return jsonify({"message": "服务器错误", "code": 1002})
+        return jsonify({"message": "服务器错误", "data": None, 'code': 1001})
 
 
 # 发送邮箱验证码
@@ -74,14 +81,26 @@ def send_email_code():
             email_model.code = code
             email_model.update_time = datetime.now()
             db.session.commit()
-            return "数据已存在"
+            return jsonify({"message": "数据已存在", "data": None, 'code': 1001})
         else:
             email_models = EmailCodeModel(email=email, code=code)
             db.session.add(email_models)
             db.session.commit()
-            return "插入成功"
+            return jsonify({"message": "操作成功", "data": None, 'code': 200})
     else:
-        return "没有传递邮箱"
+        return jsonify({"message": "没有传递邮箱", "data": None, 'code': 1001})
+
+
+# 七牛上传文件获取token
+@common.route('/upload_file', methods=['GET'])
+@swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/common/upload_file.yaml")
+def upload_file():
+    q = Auth(QINIU_ACCESS_KEY, QINIU_SECRET_KEY)
+    # 要上传的空间
+    bucket_name = 'geek-img-space'
+    # 生成上传 Token，可以指定过期时间等
+    token = q.upload_token(bucket_name, expires=3600)
+    return jsonify({"message": "操作成功", "data": token, 'code': 1001})
 
 
 # 注册
@@ -89,21 +108,26 @@ def send_email_code():
 @swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/common/register.yaml")
 def register():
     user_model = UserModel.query.filter_by(phone=request.get_json()['phone']).first()
-    if user_model:
-        print()
-        return jsonify({"message": "该用户已存在", "data": None, 'code': 1001})
+    phone_model = PhoneCodeModel.query.filter_by(phone=request.get_json()['phone']).first()
+    if phone_model:
+        if phone_model.code == request.get_json()['phone_code']:
+            if user_model:
+                print()
+                return jsonify({"message": "该用户已存在", "data": None, 'code': 1001})
+            else:
+                # 密码加密
+                hash_password = generate_password_hash(request.get_json()['phone_code'])
+                user_models = UserModel(
+                    phone=request.get_json()['phone'],
+                    password=hash_password
+                )
+                db.session.add(user_models)
+                db.session.commit()
+                return jsonify({"message": "注册成功", "data": None, 'code': 200})
+        else:
+            return jsonify({"message": "验证码错误", "data": None, 'code': 1001})
     else:
-        # 密码加密
-        hash_password = generate_password_hash(request.get_json()['password'])
-        user_models = UserModel(
-            phone=request.get_json()['phone'],
-            email=request.get_json()['email'],
-            password=hash_password
-        )
-        db.session.add(user_models)
-        db.session.commit()
-        print(generate_password_hash(request.get_json()['password']))
-        return jsonify({"message": "注册成功", "data": None, 'code': 200})
+        return jsonify({"message": "验证码错误", "data": None, 'code': 1001})
 
 
 # 登录
@@ -111,19 +135,23 @@ def register():
 @swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/common/login.yaml")
 def login():
     user_model = UserModel.query.filter_by(phone=request.get_json()['phone']).first()
+    phone_model = PhoneCodeModel.query.filter_by(phone=request.get_json()['phone']).first()
     if user_model:
-        password = request.get_json()['password']
-        if user_model and check_password_hash(user_model.password, password):
+        if user_model and (
+                phone_model.code == request.get_json()['phone_code'] or check_password_hash(user_model.password,
+                                                                                            request.get_json()[
+                                                                                                'password'])):
             session['user_id'] = user_model.id
-            return jsonify({"message": "登录成功"})
+            return jsonify({"message": "登录成功", "data": None, 'code': 200})
         else:
-            return jsonify({"message": "账号或密码错误"})
+            return jsonify({"message": "账号或密码错误", "data": None, 'code': 1001})
     else:
-        return jsonify({"message": "账号不存在"})
+        return jsonify({"message": "账号不存在", "data": None, 'code': 1001})
 
 
-# 登录
+# 退出登录
 @common.route('/login_out')
+@login_state
 @swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/common/login_out.yaml")
 def login_out():
     session.clear()
@@ -134,24 +162,26 @@ def login_out():
 @common.route('/update_user_info', methods=['POST'])
 @swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/common/update_user_info.yaml")
 def update_user_info():
-    if hasattr(g, 'user'):
-        print(g.user.id)
-    return jsonify({"message": "OK", "data": None, 'code': 1003})
+    user_model = UserModel.query.filter_by(id=g.user.id).first()
+    user_model.avatar_url = request.get_json()['avatar_url']
+    user_model.email = request.get_json()['email']
+    user_model.password = generate_password_hash(request.get_json()['password'])
+    user_model.user_name = request.get_json()['user_name']
+    db.session.commit()
+    return jsonify({"message": "操作成功", "data": None, 'code': 200})
 
 
 # 获取用户信息
 @common.route('/get_user_info')
+@login_state
+@is_admin
 @swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/common/get_user_info.yaml")
 def get_user_info():
-    if hasattr(g, 'user'):
-        print(g.user.id)
-        user_info = {
-            "id": g.user.id,
-            "user_name": g.user.user_name,
-            "phone": g.user.phone,
-            "avatar_url": g.user.avatar_url,
-            "email": g.user.email,
-        }
-        return jsonify({"message": "获取用户信息成功", "data": user_info, 'code': 200})
-    else:
-        return jsonify({"message": "用户不存在", "data": None, 'code': 1003})
+    user_info = {
+        "id": g.user.id,
+        "user_name": g.user.user_name,
+        "phone": g.user.phone,
+        "avatar_url": g.user.avatar_url,
+        "email": g.user.email,
+    }
+    return jsonify({"message": "获取用户信息成功", "data": user_info, 'code': 200})

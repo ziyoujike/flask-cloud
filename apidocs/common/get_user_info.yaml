@@ -3,8 +3,8 @@
 tags:
   - 公共模块
 
+
 responses:
-  1003:
-    description: 用户不存在！
-  200:
-    description: 获取用户信息成功！
+  schema:
+    #值类型
+    type: object

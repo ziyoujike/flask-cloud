@@ -8,10 +8,8 @@ parameters:
     type: string
     required: true
     description: 手机号
+
 responses:
-  1001:
-    description: 数据已存在！
-  1002:
-    description: 服务器错误！
-  200:
-    description: 插入成功！
+  schema:
+    #值类型
+    type: object

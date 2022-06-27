@@ -16,21 +16,14 @@ parameters:
         phone: #属性名
           type: string  #类型
           description: 手机号
-        email:
-          type: string
-          description: 邮箱
         phone_code:
           type: string
           description: 手机验证码
-        password:
-          type: string
-          description: 密码
+
 
 
 responses:
-  1001:
-    description: 数据已存在！
-  1002:
-    description: 服务器错误！
-  200:
-    description: 注册成功！
+  schema:
+    #值类型
+    type: object
+

@@ -1,29 +1,31 @@
-手机号登录&验证码登录
+新增资源分类
 ---
 tags:
-  - 公共模块
+  - 资源模块
 parameters:
-  - name: phone
+  - name: title
     in: body
     type: string
     required: true
-    description: 手机号
+    description: 标题
     schema:
       #值类型
       type: object
       #定义属性
       properties:
-        phone: #属性名
+        title: #属性名
           type: string  #类型
-          description: 手机号
-        phone_code:
+          description: 资源标题
+        img_url:
           type: string
-          description: 验证码
-        password:
+          description: 分类图片
+        desc:
           type: string
-          description: 密码
+          description: 备注信息
+
 
 responses:
   schema:
     #值类型
     type: object
+

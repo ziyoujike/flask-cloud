@@ -14,8 +14,6 @@ nullable 不能为空
 from extend import db
 from datetime import datetime
 
-# 表单验证
-import wtforms
 import uuid
 
 
@@ -28,6 +26,7 @@ class UserModel(db.Model):
     phone = db.Column(db.String(255), nullable=False, unique=True)
     avatar_url = db.Column(db.String(255))
     email = db.Column(db.String(255), unique=False)
+    user_type = db.Column(db.Integer, default=1)
     create_time = db.Column(db.DateTime, default=datetime.now)
     update_time = db.Column(db.DateTime, default=datetime.now)
 
@@ -40,8 +39,8 @@ class DictionariesModel(db.Model):
     type = db.Column(db.String(20))
     code = db.Column(db.String(4))
     icon_url = db.Column(db.String(255))
-    user_id = db.Column(db.String,db.ForEignKey=("user.id"))
-    user = db.relationship("UserModel",backref="db_dictionaries")
+    user_id = db.Column(db.String(64), db.ForeignKey('db_user.id'))
+    user = db.relationship("UserModel", backref="db_dictionaries")
     create_time = db.Column(db.DateTime, default=datetime.now)
     update_time = db.Column(db.DateTime, default=datetime.now)
 
