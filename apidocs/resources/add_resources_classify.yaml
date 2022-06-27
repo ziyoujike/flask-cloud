@@ -15,7 +15,7 @@ parameters:
       properties:
         title: #属性名
           type: string  #类型
-          description: 资源标题
+          description: 分类标题
         img_url:
           type: string
           description: 分类图片

@@ -2,9 +2,33 @@
 ---
 tags:
   - 资源模块
+parameters:
+  - name: title
+    in: body
+    type: string
+    required: true
+    description: 标题
+    schema:
+      #值类型
+      type: object
+      #定义属性
+      properties:
+        id: #属性名
+          type: string
+          description: ID
+        title: #属性名
+          type: string
+          description: 资源标题
+        img_url:
+          type: string
+          description: 分类图片
+        desc:
+          type: string
+          description: 备注信息
 
 
 responses:
   schema:
     #值类型
     type: object
+
