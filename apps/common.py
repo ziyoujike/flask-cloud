@@ -165,10 +165,27 @@ def update_user_info():
     user_model = UserModel.query.filter_by(id=g.user.id).first()
     user_model.avatar_url = request.get_json()['avatar_url']
     user_model.email = request.get_json()['email']
-    user_model.password = generate_password_hash(request.get_json()['password'])
     user_model.user_name = request.get_json()['user_name']
     db.session.commit()
     return jsonify({"message": "操作成功", "data": None, 'code': 200})
+
+
+# 修改密码
+@common.route('/update_password', methods=['POST'])
+@login_state
+@swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/common/update_password.yaml")
+def update_password():
+    try:
+        user_model = UserModel.query.filter_by(id=g.user.id).first()
+        phone_model = PhoneCodeModel.query.filter_by(phone=request.get_json()['phone']).first()
+        if phone_model.code == request.get_json()['phone_code']:
+            user_model.password = generate_password_hash(request.get_json()['password'])
+            db.session.commit()
+            return jsonify({"message": "操作成功", "data": None, 'code': 200})
+        else:
+            return jsonify({"message": "验证码错误,请重新输入", "data": None, 'code': 200})
+    except:
+        pass
 
 
 # 获取用户信息
@@ -186,7 +203,8 @@ def get_user_info():
     }
     return jsonify({"message": "获取用户信息成功", "data": user_info, 'code': 200})
 
-# 获取用户信息
+
+# 获取用户列表
 @common.route('/get_user_list')
 @login_state
 @is_admin
@@ -207,4 +225,3 @@ def get_user_list():
     return jsonify({"message": "操作成功",
                     "data": {"data": resources_list, "total": total, "has_next": has_next, "has_prev": has_prev},
                     'code': 200})
-
