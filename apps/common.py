@@ -116,7 +116,7 @@ def register():
                 return jsonify({"message": "该用户已存在", "data": None, 'code': 1001})
             else:
                 # 密码加密
-                hash_password = generate_password_hash(request.get_json()['phone_code'])
+                hash_password = generate_password_hash("123456")
                 user_models = UserModel(
                     phone=request.get_json()['phone'],
                     password=hash_password

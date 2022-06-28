@@ -90,18 +90,33 @@ def update_resources_classify():
 @login_state
 @swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/resources/get_resources.yaml")
 def get_resources():
-    resources_model = ResourcesModel.query.all()
+    page = request.args.get('current')
+    page_size = request.args.get('pageSize')
+    paginates = ResourcesModel.query.paginate(page=int(page), per_page=int(page_size))
+    has_next = paginates.has_next  # 是否有下一页
+    has_prev = paginates.has_prev  # 是否有上一页
+    total = paginates.total  # 总条数
     resources_list = []
-    for item in resources_model:
-        # 通过遍历结果集 我们将每一条记录转化为json
+    for item in paginates.items:
         items = item.to_json()
-        resources_classify_model = ResourcesClassifyModel.query.filter_by(id=items['resources_classify_id']).first()
-
-        items['resources_classify_title'] = resources_classify_model.title
         items['create_time'] = str(items['create_time'])
         items['update_time'] = str(items['update_time'])
         resources_list.append(items)
-    return jsonify({"message": "操作成功", "data": resources_list, 'code': 200})
+    return jsonify({"message": "操作成功",
+                    "data": {"data": resources_list, "total": total, "has_next": has_next, "has_prev": has_prev},
+                    'code': 200})
+    # resources_model = ResourcesModel.query.all()
+    # resources_list = []
+    # for item in resources_model:
+    #     # 通过遍历结果集 我们将每一条记录转化为json
+    #     items = item.to_json()
+    #     resources_classify_model = ResourcesClassifyModel.query.filter_by(id=items['resources_classify_id']).first()
+    #
+    #     items['resources_classify_title'] = resources_classify_model.title
+    #     items['create_time'] = str(items['create_time'])
+    #     items['update_time'] = str(items['update_time'])
+    #     resources_list.append(items)
+    # return jsonify({"message": "操作成功", "data": resources_list, 'code': 200})
 
 
 # 新增资源
