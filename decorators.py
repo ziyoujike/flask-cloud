@@ -16,7 +16,7 @@ def login_state(func):
         if hasattr(g, 'user'):
             return func(*args, **kwargs)
         else:
-            return jsonify({"message": "用户不存在", "data": None, 'code': 1001})
+            return jsonify({"message": "身份校验失败", "data": None, 'code': 1001})
 
     return wrapper
 
