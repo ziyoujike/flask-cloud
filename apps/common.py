@@ -17,7 +17,7 @@ import random
 import requests
 from qiniu import Auth
 from datetime import datetime
-from models.db_common import EmailCodeModel, PhoneCodeModel, UserModel
+from models.db_common import EmailCodeModel, PhoneCodeModel, UserModel, DictionariesModel
 
 from flasgger import swag_from
 from decorators import login_state, is_admin
@@ -225,3 +225,79 @@ def get_user_list():
     return jsonify({"message": "操作成功",
                     "data": {"data": resources_list, "total": total, "has_next": has_next, "has_prev": has_prev},
                     'code': 200})
+
+
+# 获取字典列表
+@common.route('/get_dictionaries_list')
+@login_state
+@swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/common/get_dictionaries_list.yaml")
+def get_dictionaries_list():
+    page = request.args.get('current')
+    page_size = request.args.get('pageSize')
+    paginates = DictionariesModel.query.paginate(page=int(page), per_page=int(page_size))
+    has_next = paginates.has_next  # 是否有下一页
+    has_prev = paginates.has_prev  # 是否有上一页
+    total = paginates.total  # 总条数
+    resources_list = []
+    for item in paginates.items:
+        items = item.to_json()
+        items['create_time'] = str(items['create_time'])
+        items['update_time'] = str(items['update_time'])
+        resources_list.append(items)
+    return jsonify({"message": "操作成功",
+                    "data": {"data": resources_list, "total": total, "has_next": has_next, "has_prev": has_prev},
+                    'code': 200})
+
+
+# 新增字典
+@common.route('/add_dictionaries', methods=["POST"])
+@login_state
+@is_admin
+@swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/common/add_dictionaries.yaml")
+def add_dictionaries():
+    try:
+        resources_classify = DictionariesModel(title=request.get_json()['title'],
+                                               type=request.get_json()['type'],
+                                               code=request.get_json()['code'],
+                                               icon_url=request.get_json()['icon_url'],
+                                               user_id=g.user.id)
+        db.session.add(resources_classify)
+        db.session.commit()
+        return jsonify({"message": "操作成功", "data": None, 'code': 200})
+    except:
+        pass
+
+
+# 删除字典
+@common.route('/delete_dictionaries', methods=["DELETE"])
+@login_state
+@is_admin
+@swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/common/delete_dictionaries.yaml")
+def delete_dictionaries():
+    try:
+        resources_classify = DictionariesModel.query.filter_by(id=request.args.get('id')).first()
+        db.session.delete(resources_classify)
+        db.session.commit()
+        return jsonify({"message": "操作成功", "data": None, 'code': 200})
+    except:
+        return jsonify({"message": "没有该数据", "data": None, 'code': 1001})
+
+
+# 修改字典
+@common.route('/update_dictionaries', methods=["PUT"])
+@login_state
+@is_admin
+@swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/common/update_dictionaries.yaml")
+def update_dictionaries():
+    try:
+        resources_model = DictionariesModel.query.filter_by(id=request.get_json()['id']).first()
+        resources_model.title = request.get_json()['title']
+        resources_model.type = request.get_json()['type']
+        resources_model.code = request.get_json()['code']
+        resources_model.icon_url = request.get_json()['icon_url']
+        resources_model.user_id = g.user.id
+        db.session.commit()
+
+        return jsonify({"message": "操作成功", "data": None, 'code': 200})
+    except:
+        return jsonify({"message": "参数错误", "data": None, 'code': 200})

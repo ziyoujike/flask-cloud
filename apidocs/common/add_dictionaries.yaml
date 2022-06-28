@@ -1,0 +1,33 @@
+新增字典
+---
+tags:
+  - 公共模块
+parameters:
+  - name: title
+    in: body
+    type: string
+    required: true
+    description: 标题
+    schema:
+      #值类型
+      type: object
+      #定义属性
+      properties:
+        title: #属性名
+          type: string  #类型
+          description: 标题
+        type:
+          type: string
+          description: 类型
+
+        code:
+          type: number
+          description: 编码
+        icon_url:
+          type: string
+          description: icon
+responses:
+  schema:
+    #值类型
+    type: object
+

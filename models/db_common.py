@@ -43,13 +43,18 @@ class DictionariesModel(db.Model):
     id = db.Column(db.String(64), primary_key=True, default=uuid.uuid4)
     title = db.Column(db.String(20))
     type = db.Column(db.String(20))
-    code = db.Column(db.String(4))
+    code = db.Column(db.Integer)
     icon_url = db.Column(db.String(255))
     user_id = db.Column(db.String(64), db.ForeignKey('db_user.id'))
     user = db.relationship("UserModel", backref="db_dictionaries")
     create_time = db.Column(db.DateTime, default=datetime.now)
     update_time = db.Column(db.DateTime, default=datetime.now)
-
+    def to_json(self):
+        """将实例对象转化为json"""
+        item = self.__dict__
+        if "_sa_instance_state" in item:
+            del item["_sa_instance_state"]
+        return item
 
 # 手机验证码
 
