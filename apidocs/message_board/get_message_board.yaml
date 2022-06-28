@@ -1,0 +1,19 @@
+获取留言列表
+---
+tags:
+  - 留言板
+parameters:
+  - name: current
+    in: query
+    type: number
+    required: true
+    description: 页码
+  - name: pageSize
+    in: query
+    type: number
+    required: true
+    description: 每页条数
+responses:
+  schema:
+    #值类型
+    type: object

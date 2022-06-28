@@ -1,0 +1,26 @@
+评论留言
+---
+tags:
+  - 留言板
+parameters:
+  - name: content
+    in: body
+    type: string
+    required: true
+    description: 内容
+    schema:
+      #值类型
+      type: object
+      #定义属性
+      properties:
+        content:
+          type: string
+          description: 内容
+        parent_id:
+          type: string
+          description: 评论哪条数据
+responses:
+  schema:
+    #值类型
+    type: object
+

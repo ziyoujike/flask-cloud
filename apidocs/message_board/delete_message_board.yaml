@@ -1,0 +1,16 @@
+删除留言
+---
+tags:
+  - 留言板
+parameters:
+  - name: id
+    in: query
+    type: string
+    required: true
+    description: ID
+
+responses:
+  schema:
+    #值类型
+    type: object
+

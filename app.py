@@ -18,6 +18,7 @@ swagger.init_app(app)
 
 app.register_blueprint(common)
 app.register_blueprint(resources)
+app.register_blueprint(message_board)
 
 migrate = Migrate(app, db)
 

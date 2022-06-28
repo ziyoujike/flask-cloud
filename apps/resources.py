@@ -101,6 +101,8 @@ def get_resources():
         items = item.to_json()
         items['create_time'] = str(items['create_time'])
         items['update_time'] = str(items['update_time'])
+        resources_classify_model = ResourcesClassifyModel.query.filter_by(id=items['resources_classify_id']).first()
+        items['resources_classify_title'] = resources_classify_model.title
         resources_list.append(items)
     return jsonify({"message": "操作成功",
                     "data": {"data": resources_list, "total": total, "has_next": has_next, "has_prev": has_prev},

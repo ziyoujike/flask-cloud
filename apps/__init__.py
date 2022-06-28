@@ -8,3 +8,5 @@
 from .common import common as common
 
 from .resources import resources as resources
+
+from .message_board import message_board as message_board
