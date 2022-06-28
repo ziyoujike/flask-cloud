@@ -185,3 +185,26 @@ def get_user_info():
         "email": g.user.email,
     }
     return jsonify({"message": "获取用户信息成功", "data": user_info, 'code': 200})
+
+# 获取用户信息
+@common.route('/get_user_list')
+@login_state
+@is_admin
+@swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/common/get_user_list.yaml")
+def get_user_list():
+    page = request.args.get('current')
+    page_size = request.args.get('pageSize')
+    paginates = UserModel.query.paginate(page=int(page), per_page=int(page_size))
+    has_next = paginates.has_next  # 是否有下一页
+    has_prev = paginates.has_prev  # 是否有上一页
+    total = paginates.total  # 总条数
+    resources_list = []
+    for item in paginates.items:
+        items = item.to_json()
+        items['create_time'] = str(items['create_time'])
+        items['update_time'] = str(items['update_time'])
+        resources_list.append(items)
+    return jsonify({"message": "操作成功",
+                    "data": {"data": resources_list, "total": total, "has_next": has_next, "has_prev": has_prev},
+                    'code': 200})
+
