@@ -10,7 +10,8 @@ from extend import db
 import os
 from decorators import login_state, is_admin
 from flasgger import swag_from
-from models.db_resources import ResourcesClassifyModel, ResourcesModel
+from models.db_resources import ResourcesClassifyModel, ResourcesModel, CollectionResourcesModel
+from sqlalchemy import *
 
 resources = Blueprint('resources', __name__, url_prefix='/resources')
 
@@ -22,7 +23,8 @@ resources = Blueprint('resources', __name__, url_prefix='/resources')
 def get_resources_classify():
     page = request.args.get('current')
     page_size = request.args.get('pageSize')
-    paginates = ResourcesClassifyModel.query.paginate(page=int(page), per_page=int(page_size))
+    paginates = ResourcesClassifyModel.query.order_by(desc("create_time")).paginate(page=int(page),
+                                                                                    per_page=int(page_size))
     has_next = paginates.has_next  # 是否有下一页
     has_prev = paginates.has_prev  # 是否有上一页
     total = paginates.total  # 总条数
@@ -92,7 +94,7 @@ def update_resources_classify():
 def get_resources():
     page = request.args.get('current')
     page_size = request.args.get('pageSize')
-    paginates = ResourcesModel.query.paginate(page=int(page), per_page=int(page_size))
+    paginates = ResourcesModel.query.order_by(desc("create_time")).paginate(page=int(page), per_page=int(page_size))
     has_next = paginates.has_next  # 是否有下一页
     has_prev = paginates.has_prev  # 是否有上一页
     total = paginates.total  # 总条数
@@ -179,3 +181,76 @@ def update_resources():
         return jsonify({"message": "操作成功", "data": None, 'code': 200})
     except:
         return jsonify({"message": "参数错误", "data": None, 'code': 200})
+
+
+# 收藏资源
+@resources.route('/collection_resources', methods=["POST"])
+@login_state
+@is_admin
+@swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/resources/collection_resources.yaml")
+def collection_resources():
+    select_collection_resources_model = CollectionResourcesModel.query.filter_by(user_id=g.user.id).all()
+    if select_collection_resources_model:
+        for item in select_collection_resources_model:
+            items = item.to_json()
+            if items['resources_id'] == request.args.get('id'):
+                return jsonify({"message": "该资源已收藏", "data": None, 'code': 1001})
+            else:
+                collection_resources_model = CollectionResourcesModel(resources_id=request.args.get('id'),
+                                                                      user_id=g.user.id
+                                                                      )
+                db.session.add(collection_resources_model)
+                db.session.commit()
+                return jsonify({"message": "操作成功", "data": None, 'code': 200})
+    else:
+        collection_resources_model = CollectionResourcesModel(resources_id=request.args.get('id'),
+                                                              user_id=g.user.id
+                                                              )
+        db.session.add(collection_resources_model)
+        db.session.commit()
+        return jsonify({"message": "操作成功", "data": None, 'code': 200})
+
+
+# 取消收藏
+@resources.route('/cancel_collection_resources', methods=["DELETE"])
+@login_state
+@is_admin
+@swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/resources/cancel_collection_resources.yaml")
+def cancel_collection_resources():
+    try:
+        collection_resources_model = CollectionResourcesModel.query.filter_by(id=request.args.get('id')).first()
+        db.session.delete(collection_resources_model)
+        db.session.commit()
+        return jsonify({"message": "操作成功", "data": None, 'code': 200})
+    except:
+        return jsonify({"message": "没有该数据", "data": None, 'code': 1001})
+
+
+# 获取收藏列表
+@resources.route('/get_collection_resources_list')
+@login_state
+@is_admin
+@swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/resources/get_collection_resources_list.yaml")
+def get_collection_resources_list():
+    page = request.args.get('current')
+    page_size = request.args.get('pageSize')
+    paginates = CollectionResourcesModel.query.filter_by(user_id=g.user.id).order_by(desc("create_time")).paginate(
+        page=int(page), per_page=int(page_size))
+    has_next = paginates.has_next  # 是否有下一页
+    has_prev = paginates.has_prev  # 是否有上一页
+    total = paginates.total  # 总条数
+    resources_list = []
+    for item in paginates.items:
+        items = item.to_json()
+        items['create_time'] = str(items['create_time'])
+        items['update_time'] = str(items['update_time'])
+        resources_model = ResourcesModel.query.filter_by(id=items['resources_id']).first()
+        items['resources_id'] = resources_model.id
+        items['title'] = resources_model.title
+        items['link'] = resources_model.title
+        items['desc'] = resources_model.desc
+        items['img_url'] = resources_model.img_url
+        resources_list.append(items)
+    return jsonify({"message": "操作成功",
+                    "data": {"data": resources_list, "total": total, "has_next": has_next, "has_prev": has_prev},
+                    'code': 200})

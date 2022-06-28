@@ -1,0 +1,14 @@
+取消收藏
+---
+tags:
+  - 资源模块
+parameters:
+  - name: id
+    in: query
+    type: string
+    required: true
+    description: 资源ID
+responses:
+  schema:
+    #值类型
+    type: object
