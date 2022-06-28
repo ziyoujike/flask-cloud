@@ -51,12 +51,12 @@ def send_phone_code():
             phone_model.code = code
             phone_model.update_time = datetime.now()
             db.session.commit()
-            return jsonify({"message": "数据已存在", "data": None, 'code': 1001})
+            return jsonify({"message": "操作成功", "data": None, 'code': 200})
         else:
             phone_models = PhoneCodeModel(code=code, phone=phone)
             db.session.add(phone_models)
             db.session.commit()
-            return jsonify({"message": "操作成功", "data": None, 'code': 1001})
+            return jsonify({"message": "操作成功", "data": None, 'code': 200})
 
     else:
         return jsonify({"message": "服务器错误", "data": None, 'code': 1001})
@@ -81,7 +81,7 @@ def send_email_code():
             email_model.code = code
             email_model.update_time = datetime.now()
             db.session.commit()
-            return jsonify({"message": "数据已存在", "data": None, 'code': 1001})
+            return jsonify({"message": "操作成功", "data": None, 'code': 200})
         else:
             email_models = EmailCodeModel(email=email, code=code)
             db.session.add(email_models)

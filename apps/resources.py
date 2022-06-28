@@ -12,7 +12,6 @@ from decorators import login_state, is_admin
 from flasgger import swag_from
 from models.db_resources import ResourcesClassifyModel, ResourcesModel
 
-
 resources = Blueprint('resources', __name__, url_prefix='/resources')
 
 
@@ -21,14 +20,21 @@ resources = Blueprint('resources', __name__, url_prefix='/resources')
 @login_state
 @swag_from(os.path.abspath('..') + "/flask-cloud/apidocs/resources/get_resources_classify.yaml")
 def get_resources_classify():
-    resources_model = ResourcesClassifyModel.query.all()
+    page = request.args.get('current')
+    page_size = request.args.get('pageSize')
+    paginates = ResourcesClassifyModel.query.paginate(page=int(page), per_page=int(page_size))
+    has_next = paginates.has_next  # 是否有下一页
+    has_prev = paginates.has_prev  # 是否有上一页
+    total = paginates.total  # 总条数
     resources_list = []
-    for item in resources_model:
+    for item in paginates.items:
         items = item.to_json()
         items['create_time'] = str(items['create_time'])
         items['update_time'] = str(items['update_time'])
         resources_list.append(items)
-    return jsonify({"message": "操作成功", "data": resources_list, 'code': 200})
+    return jsonify({"message": "操作成功",
+                    "data": {"data": resources_list, "total": total, "has_next": has_next, "has_prev": has_prev},
+                    'code': 200})
 
 
 # 新增资源分类
