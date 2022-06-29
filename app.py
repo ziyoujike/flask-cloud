@@ -3,10 +3,11 @@ import settings
 from extend import mail, db, swagger
 from flask_migrate import Migrate
 from models.db_common import UserModel
-
+from flask_cors import CORS
 from apps import *
 
 app = Flask(__name__)
+CORS(app)
 # 配置文件
 app.config.from_object(settings)
 # 把app绑定在db上
@@ -25,7 +26,6 @@ migrate = Migrate(app, db)
 
 @app.before_request
 def before_request():
-
     user_id = session.get('user_id')
     if user_id:
         user = UserModel.query.filter_by(id=user_id).first()
